@@ -35,6 +35,7 @@ private:
 
     float epsilon;
     float ratio;
+    int total_gain;
 
     struct group{
         int total_cell_size;

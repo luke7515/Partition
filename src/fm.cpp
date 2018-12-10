@@ -9,6 +9,7 @@ FM::FM(){
 FM::FM(float e, float r){
     epsilon = e;
     ratio = r;
+    total_gain = 0;
     Initialize();
     Compute();
 }
@@ -19,35 +20,7 @@ void FM::Initialize(){
     group2.group_cellArray = new list<CELL>[pmax * 2 + 1]; // gid = 1
 
     // set te, fs
-
     update_gain();
-    //CELL* cellptr;
-    //for(int i = 0; i < netNum; i++){
-    //    NET net = netArray[i];        
-    //    if(nc(net, 0) == 0 || nc(net, 1) == 0){
-    //        for(int j = 0; j < net.cellcount2; j++){
-    //            cellptr = cellArray + net.cell2[j];
-    //            cellptr->te++;
-    //        }
-    //    }
-    //    if(nc(net, 0) == 1 || nc(net, 1) == 1){
-    //        for(int j = 0; j < net.cellcount2; j++){
-    //            cellptr = cellArray + net.cell2[j];
-    //            cellptr->fs++;
-    //        }
-    //    }
-    //}
-
-    ////group1.maxgain = -pmax;
-    ////group2.maxgain = -pmax;
-    //for(int i = 0; i < cellNum; i++){
-    //    cellArray[i].gain = cellArray[i].fs - cellArray[i].te;
-    //    if(cellArray[i].gid == 0)
-    //        group1.group_cellArray[cellArray[i].gain + pmax].push_back(cellArray[i]);
-    //    else
-    //        group2.group_cellArray[cellArray[i].gain + pmax].push_back(cellArray[i]);
-    //}
-
 
 }
 
@@ -198,8 +171,6 @@ void FM::update_gain()
         }
     }
 
-    //group1.maxgain = -pmax;
-    //group2.maxgain = -pmax;
     for(int i = 0; i < cellNum; i++){
         cellArray[i].gain = cellArray[i].fs - cellArray[i].te;
         if(cellArray[i].gid == 0)
@@ -213,14 +184,64 @@ void FM::update_cell(int id)
 {
     CELL* cell = cellArray + id;
     cell->locked = 1;
-
+    if(cell->gid == 0)
+        cell->gid = 1;
+    else
+        cell->gid = 0;
     
-
-
+    update_gain();
 }
 
 void FM::Compute(){
 
+    CELL* cellptr;
+    NET* netptr;
+
+
+    int cost = 0;
+    for(int i = 0; i < netNum; i++){
+        int temp = -1;
+        netptr = netArray + i;
+        for(int j = 0; j < netptr->cellcount2; j++){
+            cellptr = cellArray + (netptr->cell2)[j];
+            if(temp == -1){
+                temp = cellptr->gid;
+            }
+            else if(temp != cellptr->gid){
+                cost++;
+                j = netptr->cellcount2;
+            }        
+        }    
+    
+    }
+    cout << "value = " << cost << endl;
+
+
+    int iter = 0;
+    for(int i = 0; i < cellNum; i++){
+        std::cout << "iterate" << iter  << " = " << total_gain << endl;
+        iter++;
+        int id = select_cell();
+        cellptr = cellArray + id;
+        if(id == -1)
+            break;
+        total_gain += cellptr->gain;
+        
+        for(int i = 0; i < cellNum; i++){
+            cellptr = cellArray + i;
+            if(!group1.group_cellArray[cellptr->gain + pmax].empty()){
+                group1.group_cellArray[cellptr->gain + pmax].pop_back();
+            }
+            if(!group2.group_cellArray[cellptr->gain + pmax].empty()){
+                group2.group_cellArray[cellptr->gain + pmax].pop_back();
+            
+            }
+        }
+
+        update_cell(id);
+    }
+
+    std::cout << "iterate" << iter << " = " << total_gain << endl;
 
 
 
