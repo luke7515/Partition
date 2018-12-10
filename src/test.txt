@@ -1,0 +1,6 @@
+make part
+make[1]: Entering directory '/home/luke7515/Class_Work/partition_cpp/src'
+g++ -pg -Wall    -c -o pmain.o pmain.cpp
+<builtin>: recipe for target 'pmain.o' failed
+make[1]: Leaving directory '/home/luke7515/Class_Work/partition_cpp/src'
+Makefile:22: recipe for target 'install' failed
