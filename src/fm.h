@@ -32,6 +32,10 @@ public:
     FM(float e, float r);
 
 private:
+
+    float epsilon;
+    float ratio;
+
     struct group{
         int total_cell_size;
         //CELL* group_cellArray;
@@ -63,7 +67,7 @@ private:
     void Sort();
     int nc(NET net, int gid);
 
-    void select_cell(int &candidate1, int &candidate2);
+    int select_cell();
 
 
     

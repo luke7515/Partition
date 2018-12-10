@@ -7,6 +7,8 @@ FM::FM(){
 }
 
 FM::FM(float e, float r){
+    epsilon = e;
+    ratio = r;
     Initialize();
 }
 
@@ -124,10 +126,13 @@ int FM::nc(NET net, int gid){
     return count;
 }
 
-void FM::select_cell(int &candidate1, int &candidate2){
+int FM::select_cell(){
+    
+    int g1 = -1;
+    int g2 = -1;
+    int gain;
 
-    float epsilon = 0.1;
-    float ratio = 0.5;
+    gain = -pmax;
 
     for(int i = 2*pmax; i >= 0; i--){
         list<CELL> array_temp = group1.group_cellArray[i];
@@ -138,7 +143,8 @@ void FM::select_cell(int &candidate1, int &candidate2){
                     int area = it->width * it->height;
                     if(group1.total_cell_size - area 
                         >= total_cell_size * (ratio - epsilon/2)){
-                        candidate1 = it->id;
+                        g1 = it->id;
+                        gain = it->gain;
                         break;
                     }
                 }
@@ -156,13 +162,18 @@ void FM::select_cell(int &candidate1, int &candidate2){
                     int area = it->width * it->height;
                     if(group2.total_cell_size - area 
                         >= total_cell_size * (ratio - epsilon/2)){
-                        candidate2 = it->id;
-                        break;
+                        g2 = it->id;
+                        if(it->gain < gain)
+                            return g1;
+                        else
+                            return g2;                        
                     }
                 }
             }        
         }
     }
+
+    return g1;
     
 }
 
