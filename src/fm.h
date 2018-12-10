@@ -68,6 +68,10 @@ private:
     int nc(NET net, int gid);
 
     int select_cell();
+    void update_cell(int id);
+    void update_gain();
+
+    void Compute();
 
 
     

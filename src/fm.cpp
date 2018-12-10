@@ -10,6 +10,7 @@ FM::FM(float e, float r){
     epsilon = e;
     ratio = r;
     Initialize();
+    Compute();
 }
 
 void FM::Initialize(){
@@ -18,38 +19,34 @@ void FM::Initialize(){
     group2.group_cellArray = new list<CELL>[pmax * 2 + 1]; // gid = 1
 
     // set te, fs
-    CELL* cellptr;
-    for(int i = 0; i < netNum; i++){
-        NET net = netArray[i];        
-        if(nc(net, 0) == 0 || nc(net, 1) == 0){
-            for(int j = 0; j < net.cellcount2; j++){
-                cellptr = cellArray + net.cell2[j];
-                cellptr->te++;
-            }
-        }
-        if(nc(net, 0) == 1 || nc(net, 1) == 1){
-            for(int j = 0; j < net.cellcount2; j++){
-                cellptr = cellArray + net.cell2[j];
-                cellptr->fs++;
-            }
-        }
-    }
 
-    //group1.maxgain = -pmax;
-    //group2.maxgain = -pmax;
-    for(int i = 0; i < cellNum; i++){
-        cellArray[i].gain = cellArray[i].fs - cellArray[i].te;
-        if(cellArray[i].gid == 0){
-            //if(group1.maxgain <= cellArray[i].gain)
-            //    group1.maxgain = cellArray[i].gain;
-            group1.group_cellArray[cellArray[i].gain + pmax].push_back(cellArray[i]);
-        }
-        else{
-            //if(group2.maxgain <= cellArray[i].gain)
-            //    group2.maxgain = cellArray[i].gain;
-            group2.group_cellArray[cellArray[i].gain + pmax].push_back(cellArray[i]);
-        }    
-    }
+    update_gain();
+    //CELL* cellptr;
+    //for(int i = 0; i < netNum; i++){
+    //    NET net = netArray[i];        
+    //    if(nc(net, 0) == 0 || nc(net, 1) == 0){
+    //        for(int j = 0; j < net.cellcount2; j++){
+    //            cellptr = cellArray + net.cell2[j];
+    //            cellptr->te++;
+    //        }
+    //    }
+    //    if(nc(net, 0) == 1 || nc(net, 1) == 1){
+    //        for(int j = 0; j < net.cellcount2; j++){
+    //            cellptr = cellArray + net.cell2[j];
+    //            cellptr->fs++;
+    //        }
+    //    }
+    //}
+
+    ////group1.maxgain = -pmax;
+    ////group2.maxgain = -pmax;
+    //for(int i = 0; i < cellNum; i++){
+    //    cellArray[i].gain = cellArray[i].fs - cellArray[i].te;
+    //    if(cellArray[i].gid == 0)
+    //        group1.group_cellArray[cellArray[i].gain + pmax].push_back(cellArray[i]);
+    //    else
+    //        group2.group_cellArray[cellArray[i].gain + pmax].push_back(cellArray[i]);
+    //}
 
 
 }
@@ -177,5 +174,55 @@ int FM::select_cell(){
     
 }
 
+void FM::update_gain()
+{
+    CELL* cellptr;
+    for(int i = 0; i < cellNum; i++){
+        cellptr = cellArray + i;
+        cellptr->te = 0;
+        cellptr->fs = 0;
+    }
+    for(int i = 0; i < netNum; i++){
+        NET net = netArray[i];        
+        if(nc(net, 0) == 0 || nc(net, 1) == 0){
+            for(int j = 0; j < net.cellcount2; j++){
+                cellptr = cellArray + net.cell2[j];
+                cellptr->te++;
+            }
+        }
+        if(nc(net, 0) == 1 || nc(net, 1) == 1){
+            for(int j = 0; j < net.cellcount2; j++){
+                cellptr = cellArray + net.cell2[j];
+                cellptr->fs++;
+            }
+        }
+    }
 
+    //group1.maxgain = -pmax;
+    //group2.maxgain = -pmax;
+    for(int i = 0; i < cellNum; i++){
+        cellArray[i].gain = cellArray[i].fs - cellArray[i].te;
+        if(cellArray[i].gid == 0)
+            group1.group_cellArray[cellArray[i].gain + pmax].push_back(cellArray[i]);
+        else
+            group2.group_cellArray[cellArray[i].gain + pmax].push_back(cellArray[i]);
+    }
+}
+
+void FM::update_cell(int id)
+{
+    CELL* cell = cellArray + id;
+    cell->locked = 1;
+
+    
+
+
+}
+
+void FM::Compute(){
+
+
+
+
+}
 
