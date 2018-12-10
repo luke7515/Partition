@@ -165,7 +165,7 @@ void FM::update_gain()
         NET net = netArray[i];        
         for(int j = 0; j < net.cellcount2; j++){
             cellptr = cellArray + net.cell2[j];
-            if(nc(net, cellptr->gid) == 0)
+            if(nc(net, 1-cellptr->gid) == 0)
                 cellptr->te++;
         }
         for(int j = 0; j < net.cellcount2; j++){
@@ -175,12 +175,17 @@ void FM::update_gain()
         }
     }
 
+    int maxgain = -pmax;
     for(int i = 0; i < cellNum; i++){
-        cellArray[i].gain = cellArray[i].fs - cellArray[i].te;
-        if(cellArray[i].gid == 0)
-            group1.group_cellArray[cellArray[i].gain + pmax].push_back(cellArray[i]);
-        else
-            group2.group_cellArray[cellArray[i].gain + pmax].push_back(cellArray[i]);
+        if(!cellArray[i].locked){
+            
+            cellArray[i].gain = cellArray[i].fs - cellArray[i].te;
+
+            if(cellArray[i].gid == 0)
+                group1.group_cellArray[cellArray[i].gain + pmax].push_back(cellArray[i]);
+            else
+                group2.group_cellArray[cellArray[i].gain + pmax].push_back(cellArray[i]);
+        }
     }
 
     
@@ -216,13 +221,11 @@ void FM::Compute(){
     int iter = 0;
 
     for(int i = 0; i < cellNum; i++){
-        Calculate_Cost();
-        cout << "iterate" << iter  << " = " << total_gain << endl;
+        //Calculate_Cost();
+        //cout << "iterate" << iter  << " = " << total_gain << endl;
         iter++;
         int id = select_cell();
         cellptr = cellArray + id;
-        //cout << "name = " << cellptr->name << " ";
-        //cout << "gain = " << cellptr->gain << " " << endl;
         cellptr = cellArray + id;
         if(id == -1)
             break;
@@ -242,8 +245,8 @@ void FM::Compute(){
         update_cell(id);
     }
 
-    Calculate_Cost();
-    std::cout << "iterate" << iter << " = " << total_gain << endl;
+    //Calculate_Cost();
+    //std::cout << "iterate" << iter << " = " << total_gain << endl;
 
 
 
