@@ -31,7 +31,6 @@ void FM::Sort(){
     CELL* cellArraySorted = new CELL[cellNum];
 
     // get wmax and dmax while copying
-    int wmax = 0;
     int dmax = 0;
     // Copy necessary values for sorting
     for(int i = 0; i < cellNum; i++){
@@ -42,10 +41,7 @@ void FM::Sort(){
         cellArrayTemp[i].width = cell->width;
         cellArrayTemp[i].height = cell->height;
         
-        int w = cell->width * cell->height;
         int d = cell->netcount2;
-        if(wmax <= w)
-            wmax = w;
         if(dmax <= d)
             dmax = d;
     }
@@ -82,7 +78,7 @@ void FM::Sort(){
     delete [] cellArraySorted;
     delete [] cellArrayTemp;
 
-    pmax = wmax * dmax;
+    pmax = dmax;
 }
 
 int FM::nc(NET net, int gid){
@@ -100,9 +96,11 @@ int FM::select_cell(){
     
     int g1 = -1;
     int g2 = -1;
-    int gain;
+    int gain1;
+    int gain2;
 
-    gain = -pmax;
+    gain1 = -pmax;
+    gain2 = -pmax;
 
     for(int i = 2*pmax; i >= 0; i--){
         list<CELL> array_temp = group1.group_cellArray[i];
@@ -112,10 +110,13 @@ int FM::select_cell(){
                 if(!it->locked){
                     int area = it->width * it->height;
                     if(group1.total_cell_size - area 
-                        >= total_cell_size * (ratio - epsilon/2)){
-                        g1 = it->id;
-                        gain = it->gain;
-                        break;
+                        >= total_cell_size * (ratio - epsilon)){
+                        if(gain1 < it->gain){
+                            g1 = it->id;
+                            gain1 = it->gain;
+                            it = array_temp.end();
+                            i = -1;
+                        }
                     }
                 }
             }            
@@ -131,17 +132,22 @@ int FM::select_cell(){
                 if(!it->locked){
                     int area = it->width * it->height;
                     if(group2.total_cell_size - area 
-                        >= total_cell_size * (ratio - epsilon/2)){
-                        g2 = it->id;
-                        if(it->gain < gain)
-                            return g1;
-                        else
-                            return g2;                        
+                        >= total_cell_size * (ratio - epsilon)){
+                        if(gain2 < it->gain){
+                            g2 = it->id;
+                            gain2 = it->gain;
+                            it = array_temp.end();
+                            i = -1;
+                        }
                     }
                 }
             }        
         }
     }
+
+    
+    if(gain1 < gain2)
+        return g2;
 
     return g1;
     
@@ -157,17 +163,15 @@ void FM::update_gain()
     }
     for(int i = 0; i < netNum; i++){
         NET net = netArray[i];        
-        if(nc(net, 0) == 0 || nc(net, 1) == 0){
-            for(int j = 0; j < net.cellcount2; j++){
-                cellptr = cellArray + net.cell2[j];
+        for(int j = 0; j < net.cellcount2; j++){
+            cellptr = cellArray + net.cell2[j];
+            if(nc(net, cellptr->gid) == 0)
                 cellptr->te++;
-            }
         }
-        if(nc(net, 0) == 1 || nc(net, 1) == 1){
-            for(int j = 0; j < net.cellcount2; j++){
-                cellptr = cellArray + net.cell2[j];
+        for(int j = 0; j < net.cellcount2; j++){
+            cellptr = cellArray + net.cell2[j];
+            if(nc(net, cellptr->gid) == 1)
                 cellptr->fs++;
-            }
         }
     }
 
@@ -178,50 +182,47 @@ void FM::update_gain()
         else
             group2.group_cellArray[cellArray[i].gain + pmax].push_back(cellArray[i]);
     }
+
+    
 }
 
 void FM::update_cell(int id)
 {
     CELL* cell = cellArray + id;
     cell->locked = 1;
-    if(cell->gid == 0)
+    int area = cell->width * cell->height;
+    if(cell->gid == 0){
         cell->gid = 1;
-    else
+        group1.total_cell_size -= area;
+        group2.total_cell_size += area;
+    }
+    else{
         cell->gid = 0;
-    
+        group1.total_cell_size += area;
+        group2.total_cell_size -= area;
+    }   
     update_gain();
 }
 
 void FM::Compute(){
 
     CELL* cellptr;
-    NET* netptr;
 
-
-    int cost = 0;
-    for(int i = 0; i < netNum; i++){
-        int temp = -1;
-        netptr = netArray + i;
-        for(int j = 0; j < netptr->cellcount2; j++){
-            cellptr = cellArray + (netptr->cell2)[j];
-            if(temp == -1){
-                temp = cellptr->gid;
-            }
-            else if(temp != cellptr->gid){
-                cost++;
-                j = netptr->cellcount2;
-            }        
-        }    
-    
-    }
-    cout << "value = " << cost << endl;
-
+    //for(int i = 0; i <  cellNum; i++){
+    //    cellptr = cellArray + i;
+    //    cout << cellptr->name << " " << cellptr->gain << endl;
+    //}
 
     int iter = 0;
+
     for(int i = 0; i < cellNum; i++){
-        std::cout << "iterate" << iter  << " = " << total_gain << endl;
+        Calculate_Cost();
+        cout << "iterate" << iter  << " = " << total_gain << endl;
         iter++;
         int id = select_cell();
+        cellptr = cellArray + id;
+        //cout << "name = " << cellptr->name << " ";
+        //cout << "gain = " << cellptr->gain << " " << endl;
         cellptr = cellArray + id;
         if(id == -1)
             break;
@@ -241,9 +242,33 @@ void FM::Compute(){
         update_cell(id);
     }
 
+    Calculate_Cost();
     std::cout << "iterate" << iter << " = " << total_gain << endl;
 
 
 
 }
 
+void FM::Calculate_Cost(){
+    CELL* cellptr;
+    NET* netptr;
+    int cost = 0;
+    for(int i = 0; i < netNum; i++){
+        int temp = -1;
+        netptr = netArray + i;
+        for(int j = 0; j < netptr->cellcount2; j++){
+            cellptr = cellArray + (netptr->cell2)[j];
+            if(temp == -1){
+                temp = cellptr->gid;
+            }
+            else if(temp != cellptr->gid){
+                cost++;
+                j = netptr->cellcount2;
+            }        
+        }    
+    
+    }
+    cout << "value = " << cost << endl;
+
+
+}

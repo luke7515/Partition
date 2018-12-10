@@ -1,3 +1,3 @@
 #bin/bash
 
-../test/part ../test/primga1
+../test/part ../test/primary1

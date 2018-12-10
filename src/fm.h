@@ -73,6 +73,7 @@ private:
     void update_gain();
 
     void Compute();
+    void Calculate_Cost();
 
 
     

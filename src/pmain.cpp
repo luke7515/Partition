@@ -26,7 +26,7 @@ static void part(char *file)
     inputParse(file);
 
     /* test print, you may delete this line */
-    printCircuit();
+    //printCircuit();
 
 	/*********************************
 	* insert your partition code here 
