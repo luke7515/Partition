@@ -39,7 +39,7 @@ int main(int argc, char **argv)
     //if (argc < 2)
 	//errorMsg("usage: part input");
 
-    char filename[20] = "../test/primga2";
+    char filename[20] = "../test/primary2";
 
     part(filename);
     return 0;

@@ -178,8 +178,21 @@ void FM::update_gain()
     int maxgain = -pmax;
     for(int i = 0; i < cellNum; i++){
         if(!cellArray[i].locked){
-            
             cellArray[i].gain = cellArray[i].fs - cellArray[i].te;
+            if(cellArray[i].gain > maxgain)
+                maxgain = cellArray[i].gain;
+        }
+    }
+    if(maxgain > pmax){
+        delete [] group1.group_cellArray;
+        delete [] group2.group_cellArray;
+        group1.group_cellArray = new list<CELL>[maxgain * 2 + 1]; // gid = 0
+        group2.group_cellArray = new list<CELL>[maxgain * 2 + 1]; // gid = 1
+        pmax = maxgain;
+    }
+
+    for(int i = 0; i < cellNum; i++){
+        if(!cellArray[i].locked){
 
             if(cellArray[i].gid == 0)
                 group1.group_cellArray[cellArray[i].gain + pmax].push_back(cellArray[i]);
@@ -219,9 +232,9 @@ void FM::Compute(){
     //}
 
     int iter = 0;
+    Calculate_Cost();
 
     for(int i = 0; i < cellNum; i++){
-        //Calculate_Cost();
         cout << "iterate" << iter  << " = " << total_gain << endl;
         iter++;
         int id = select_cell();
