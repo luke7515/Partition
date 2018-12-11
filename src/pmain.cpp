@@ -36,9 +36,11 @@ static void part(char *file)
 
 int main(int argc, char **argv)
 {
-    if (argc < 2)
-	errorMsg("usage: part input");
+    //if (argc < 2)
+	//errorMsg("usage: part input");
 
-    part(argv[1]);
+    char filename[20] = "../test/primga2";
+
+    part(filename);
     return 0;
 }

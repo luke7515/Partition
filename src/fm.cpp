@@ -222,7 +222,7 @@ void FM::Compute(){
 
     for(int i = 0; i < cellNum; i++){
         //Calculate_Cost();
-        //cout << "iterate" << iter  << " = " << total_gain << endl;
+        cout << "iterate" << iter  << " = " << total_gain << endl;
         iter++;
         int id = select_cell();
         cellptr = cellArray + id;
@@ -246,7 +246,7 @@ void FM::Compute(){
     }
 
     //Calculate_Cost();
-    //std::cout << "iterate" << iter << " = " << total_gain << endl;
+    std::cout << "iterate" << iter << " = " << total_gain << endl;
 
 
 
